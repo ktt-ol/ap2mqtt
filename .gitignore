@@ -1,0 +1,5 @@
+.idea/
+venv/
+ap2mqtt.conf
+__pycache__/
+*.pyc
