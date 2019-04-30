@@ -107,7 +107,7 @@ class WLANMQTT:
             self.client.publish(radiobase + "state", data.get("state", ""), retain=RETAIN)
 
         for speed, radiostats in data.get("stats", {}).items():
-            self.__mqtt_publish_radio_stats(ap, radio, speed, radiostats)
+            self.__mqtt_publish_radio_stats(ap, radio, byte2str(speed), radiostats)
 
     def __mqtt_publish_radio_stats(self, ap, radio, speed, data):
         statsbase = self.basepath + "/ap-%02d/radio-%d/stats-%s/" % (ap, radio, speed)
@@ -142,3 +142,10 @@ class WLANMQTT:
     def on_disconnect(self, client, userdata, rc):
         self.connected = False
         print("MQTT disconnected with code " + str(rc))
+
+
+def byte2str(input):
+    if type(input) is bytes:
+        return input.decode('utf-8')
+
+    return input
