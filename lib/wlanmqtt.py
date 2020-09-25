@@ -1,19 +1,33 @@
+import concurrent.futures
 import json
+import random
+import ssl
+import string
+from typing import List
 
 import paho.mqtt.client as mqtt
+
+from lib import ClientInfo
+from lib.RuckusTelnet import RuckusTelnet
 
 # useful for testing, default should be True
 RETAIN = True
 
 
 class WLANMQTT:
-    def __init__(self, cli, mqttauth):
+    def __init__(self, old_ctrl, ruckus: RuckusTelnet, mqttauth):
         self.basepath = mqttauth["basepath"]
         self.sessionpath = mqttauth["session-path"]
-        self.client = mqtt.Client(client_id=mqttauth["clientid"])
+        client_id = "%s-%s" % (
+            mqttauth["clientid"],
+            ''.join(random.choice(string.ascii_letters) for i in range(4))
+        )
+        self.client = mqtt.Client(client_id=client_id)
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
-        self.client.tls_set(mqttauth["certfile"])
+        # ignore any ssl errors
+        self.client.tls_set(cert_reqs=ssl.CERT_NONE)
+        self.client.tls_insecure_set(True)
         self.client.username_pw_set(mqttauth["username"], mqttauth["password"])
         self.client.connect(mqttauth["server"], int(mqttauth["port"]), 60)
         self.client.loop_start()
@@ -21,30 +35,40 @@ class WLANMQTT:
         self.connected = None
 
         self.cached = {}
-        self.cli = cli
+        self.old_ctrl = old_ctrl
+        self.ruckus = ruckus
 
     def __exit__(self):
-        self.cli.exit()
+        self.old_ctrl.exit()
+        self.ruckus.exit()
         self.client.loop_stop()
 
     def update(self):
         if not self.connected:
             return False
 
-        data = self.cli.cmd_all()
-
-        for ap, apdata in data.items():
-            self.__mqtt_publish_ap(ap, apdata)
-
-        self.cached = data
+        # data = self.cli.cmd_all()
+        # for ap, apdata in data.items():
+        #     self.__mqtt_publish_ap(ap, apdata)
+        # self.cached = data
 
         self.__update_user_sessions()
 
         return True
 
     def __update_user_sessions(self):
-        userdata = self.cli.cmd_user_sessions()
-        self.client.publish(self.sessionpath, json.dumps(userdata, default=lambda obj: obj.decode('utf-8')), retain=RETAIN)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            future_to_ci = [
+                executor.submit(self.old_ctrl.cmd_user_sessions),
+                executor.submit(self.ruckus.read_clients)
+            ]
+
+            clients: List[ClientInfo] = []
+            for future in concurrent.futures.as_completed(future_to_ci):
+                clients += future.result()
+
+            result = self.client.publish(self.sessionpath, json.dumps(clients, default=lambda x: x.__dict__), retain=RETAIN)
+            result.wait_for_publish()
 
     def __mqtt_publish_ap(self, ap, data):
         apbase = self.basepath + "/ap-%02d/" % ap

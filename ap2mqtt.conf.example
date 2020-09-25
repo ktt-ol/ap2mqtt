@@ -1,7 +1,9 @@
+[global]
+interval=20
+
 [mqttauth]
 server = spacegate.mainframe.lan
 port = 8883
-certfile = /etc/spacegate.mainframe.lan.crt
 username =
 password =
 clientid = ap2mqtt
@@ -9,6 +11,12 @@ basepath = /net/wlan
 session-path = /net/wlan-sessions
 
 [cliauth]
+server =
+port = 23
+username =
+password =
+
+[ruckus]
 server =
 port = 23
 username =

@@ -1,8 +1,11 @@
 import calendar
 import re
 import telnetlib
+from typing import List
 
 from dateutil import parser as dateparser
+
+from lib import ClientInfo
 
 regex_more = re.compile(br"^press any key to continue, q to quit.")
 regex_prompt = re.compile(br"^Mainframe-WLAN-backup# ")
@@ -20,7 +23,7 @@ regex_user_property = re.compile(br"^([A-Z][A-Za-z/ -6()]{1,19}):[ ]+([^\r]+)$")
 regex_user_property_continue = re.compile(br"^[ ]{20}([^\r]+)$")
 
 
-class WLANControllerCLI:
+class OldControllerTelnet:
     def __init__(self, hostname, port, username, password):
         self.tn = telnetlib.Telnet(hostname, port)
         self.tn.read_until(b"Username: ")
@@ -209,7 +212,7 @@ class WLANControllerCLI:
         date = dateparser.parse(str)
         return calendar.timegm(date.timetuple())
 
-    def cmd_user_sessions(self):
+    def cmd_user_sessions(self) -> List[ClientInfo]:
         session = None
         # if not None, the next empty is additional ipv6 value
         ipv6_addresses = None
@@ -296,7 +299,17 @@ class WLANControllerCLI:
                     val = regexdata[0].strip()
                     ipv6_addresses.append(val)
 
-        return self.userdata
+        client_info: List[ClientInfo] = []
+        for session in self.userdata:
+            data = self.userdata[session]
+            client_info.append(ClientInfo(
+                ipv4=data.get("ip", "").decode("utf-8"),
+                ipv6=ipv6_addresses if ipv6_addresses is not None else [],
+                mac=data.get("mac", "").decode("utf-8"),
+                ap=data.get("ap", -1),
+                location=""
+            ))
+        return client_info
 
     def cmd_all(self):
         self.data = {}

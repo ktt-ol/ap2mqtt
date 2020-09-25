@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import configparser
 
-from wlancli import WLANControllerCLI
+from lib.wlanTelnet import OldControllerTelnet
 from datetime import datetime
 
 
@@ -80,7 +80,7 @@ def dump(userinfo):
 config = configparser.ConfigParser()
 config.read("ap2mqtt.conf")
 cliauth = config["cliauth"]
-cli = WLANControllerCLI(cliauth["server"], cliauth["port"], cliauth["username"], cliauth["password"])
+cli = OldControllerTelnet(cliauth["server"], cliauth["port"], cliauth["username"], cliauth["password"])
 cli.cmd_user_sessions()
 cli.exit()
 

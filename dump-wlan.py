@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import configparser
 
-from wlancli import WLANControllerCLI
+from lib.wlanTelnet import OldControllerTelnet
 
 
 def dumpAP(apinfo):
@@ -12,7 +12,7 @@ def dumpAP(apinfo):
 config = configparser.ConfigParser()
 config.read("ap2mqtt.conf")
 cliauth = config["cliauth"]
-cli = WLANControllerCLI(cliauth["server"], cliauth["port"], cliauth["username"], cliauth["password"])
+cli = OldControllerTelnet(cliauth["server"], cliauth["port"], cliauth["username"], cliauth["password"])
 cli.cmd_ap_config()
 cli.cmd_ap_status()
 cli.cmd_ap_counters()
