@@ -1,4 +1,4 @@
+requests[security]==2.22.0
 sdnotify==0.3.2
-python-dateutil==2.8.0
+python-dateutil==2.8.1
 paho-mqtt==1.4.0
-requests==2.24.0

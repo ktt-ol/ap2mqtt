@@ -2,6 +2,7 @@
 import configparser
 
 from lib.RuckusTelnet import RuckusTelnet
+from lib.ruckusWeb import RuckusWeb
 from lib.wlanmqtt import WLANMQTT
 from lib.oldCtrlTelnet import OldControllerTelnet
 import time
@@ -13,7 +14,8 @@ config.read("ap2mqtt.conf")
 cliauth = config["cliauth"]
 old_ctrl = OldControllerTelnet(cliauth["server"], cliauth["port"], cliauth["username"], cliauth["password"])
 ruckus_config = config["ruckus"]
-ruckus = RuckusTelnet(ruckus_config["server"], ruckus_config["port"], ruckus_config["username"], ruckus_config["password"])
+# ruckus = RuckusTelnet(ruckus_config["server"], ruckus_config["port"], ruckus_config["username"], ruckus_config["password"])
+ruckus = RuckusWeb(ruckus_config["server"], ruckus_config["username"], ruckus_config["password"])
 
 mqtt = WLANMQTT(old_ctrl, ruckus, config["mqttauth"])
 while mqtt.connected is None:

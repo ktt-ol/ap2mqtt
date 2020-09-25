@@ -10,4 +10,4 @@ class ClientInfo:
         self.location = location
 
     def __repr__(self):
-        return f"{self.ipv4}, {self.ipv6}, {self.mac}, {self.ap}, {self.location}"
+        return f"ClientInfo(v4: {self.ipv4}, v6: {self.ipv6}, {self.mac}, {self.ap}, {self.location})"

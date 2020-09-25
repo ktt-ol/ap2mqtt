@@ -11,11 +11,13 @@ from lib import ClientInfo
 from lib.RuckusTelnet import RuckusTelnet
 
 # useful for testing, default should be True
+from lib.ruckusWeb import RuckusWeb
+
 RETAIN = True
 
 
 class WLANMQTT:
-    def __init__(self, old_ctrl, ruckus: RuckusTelnet, mqttauth):
+    def __init__(self, old_ctrl, ruckus: RuckusWeb, mqttauth):
         self.basepath = mqttauth["basepath"]
         self.sessionpath = mqttauth["session-path"]
         client_id = "%s-%s" % (
