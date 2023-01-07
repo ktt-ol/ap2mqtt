@@ -2,7 +2,7 @@ import re
 import telnetlib
 from typing import List, Dict
 
-from lib import ClientInfo
+from lib.BaseClientInfoProvider import BaseClientInfoProvider, ClientInfo
 
 regex_4space_kv = re.compile(br"^\s{4}([^=]+)=(.+)$")
 regex_6space_kv = re.compile(br"^\s{6}([^=]+)=(.+)$")
@@ -20,7 +20,7 @@ class ApInfo:
         return "%s, %s, %s" % (self.number, self.mac, self.location)
 
 
-class RuckusTelnet:
+class RuckusTelnet(BaseClientInfoProvider):
     def __init__(self, hostname, port, username, password):
         self.data = {}
         self.userdata = {}

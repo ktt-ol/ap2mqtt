@@ -8,16 +8,14 @@ import sys
 
 import paho.mqtt.client as mqtt
 
-from lib import ClientInfo
-from lib.RuckusTelnet import RuckusTelnet
-from lib.unifiWeb import UnifiWeb
+from lib.BaseClientInfoProvider import ClientInfo, BaseClientInfoProvider
 
 # useful for testing, default should be True
 RETAIN = True
 
 
 class WLANMQTT:
-    def __init__(self, unifi: UnifiWeb, mqttauth):
+    def __init__(self, client_provider: List[BaseClientInfoProvider], mqttauth):
         self.basepath = mqttauth["basepath"]
         self.sessionpath = mqttauth["session-path"]
         client_id = "%s-%s" % (
@@ -37,14 +35,13 @@ class WLANMQTT:
         self.connected = None
 
         self.cached = {}
-        #self.old_ctrl = old_ctrl
-        #self.ruckus = ruckus
-        self.unifi = unifi
+        # self.old_ctrl = old_ctrl
+        # self.ruckus = ruckus
+        self.client_provider = client_provider
 
     def __exit__(self):
-        #self.old_ctrl.exit()
-        #self.ruckus.exit()
-        self.unifi.exit()
+        for provider in self.client_provider:
+            provider.exit()
         self.client.loop_stop()
 
     def update(self):
@@ -62,11 +59,9 @@ class WLANMQTT:
 
     def __update_user_sessions(self):
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            future_to_ci = [
-                #executor.submit(self.old_ctrl.cmd_user_sessions),
-                #executor.submit(self.ruckus.read_clients),
-                executor.submit(self.unifi.read_clients)
-            ]
+            future_to_ci = []
+            for provider in self.client_provider:
+                future_to_ci.append(executor.submit(provider.read_clients))
 
             clients: List[ClientInfo] = []
             for future in concurrent.futures.as_completed(future_to_ci):
@@ -173,6 +168,7 @@ class WLANMQTT:
         print("MQTT disconnected with code " + str(rc))
         # TODO: try to do a reconnect?
         sys.exit(1)
+
 
 def byte2str(input):
     if type(input) is bytes:

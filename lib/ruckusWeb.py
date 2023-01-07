@@ -4,11 +4,11 @@ from xml.dom import minidom
 import ssl
 
 import requests
-from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.poolmanager import PoolManager
 
-from lib import ClientInfo
+from lib.BaseClientInfoProvider import BaseClientInfoProvider, ClientInfo
+
 
 class TLS1Adapter(HTTPAdapter):
     def init_poolmanager(self, connections, maxsize, block=False):
@@ -17,7 +17,7 @@ class TLS1Adapter(HTTPAdapter):
                                        block=block,
                                        ssl_version=ssl.PROTOCOL_TLSv1)
 
-class RuckusWeb:
+class RuckusWeb(BaseClientInfoProvider):
     """
     Gets wifi client information from the Ruckus wifi controller web interface.
     """

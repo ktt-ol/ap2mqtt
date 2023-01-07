@@ -5,7 +5,7 @@ from typing import List
 
 from dateutil import parser as dateparser
 
-from lib import ClientInfo
+from lib.BaseClientInfoProvider import ClientInfo
 
 regex_more = re.compile(br"^press any key to continue, q to quit.")
 regex_prompt = re.compile(br"^Mainframe-WLAN-backup# ")

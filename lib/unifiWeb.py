@@ -3,10 +3,11 @@ from typing import List
 import requests
 import json
 import time
-from requests import Session
-from lib import ClientInfo
 
-class UnifiWeb:
+from lib.BaseClientInfoProvider import BaseClientInfoProvider, ClientInfo
+
+
+class UnifiWeb(BaseClientInfoProvider):
     """
     Gets wifi client information from the Ubiquiti wifi controller web interface.
     """
