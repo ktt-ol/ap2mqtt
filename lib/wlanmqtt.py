@@ -67,8 +67,28 @@ class WLANMQTT:
             for future in concurrent.futures.as_completed(future_to_ci):
                 clients += future.result()
 
+            clients = WLANMQTT.merge_clients_list(clients)
+
             result = self.client.publish(self.sessionpath, json.dumps(clients, default=lambda x: x.__dict__), retain=RETAIN)
             result.wait_for_publish()
+
+    @staticmethod
+    def merge_clients_list(clients: List[ClientInfo]) -> List[ClientInfo]:
+        by_mac: dict[str, ClientInfo] = {}
+
+        for client in clients:
+            if client.mac in by_mac:
+                # merge values
+                target = by_mac[client.mac]
+                if client.ap > 0:
+                    target.ap = client.ap
+                if len(client.ipv6) > 0:
+                    target.ipv6 = list(set(target.ipv6 + client.ipv6))
+            else:
+                # new entry
+                by_mac[client.mac] = client
+
+        return list(by_mac.values())
 
     def __mqtt_publish_ap(self, ap, data):
         apbase = self.basepath + "/ap-%02d/" % ap
