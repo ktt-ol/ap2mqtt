@@ -1,17 +1,25 @@
 import warnings
 from typing import List
 from xml.dom import minidom
+import ssl
 
 import requests
 from requests import Session
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.poolmanager import PoolManager
 
 from lib import ClientInfo
 
+class TLS1Adapter(HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=False):
+        self.poolmanager = PoolManager(num_pools=connections,
+                                       maxsize=maxsize,
+                                       block=block,
+                                       ssl_version=ssl.PROTOCOL_TLSv1)
 
 class RuckusWeb:
     """
     Gets wifi client information from the Ruckus wifi controller web interface.
-    This is way faster than the telnet version and causes less cpu load.
     """
 
     # AJAX request string for currently active clients
@@ -43,11 +51,12 @@ class RuckusWeb:
 
     def _login(self):
         self._session = requests.Session()
+        self._session.mount('https://', TLS1Adapter())
         # Login to Ruckus web frontend and get session cookie
         r = self._session.post(self.login_url, verify=False, allow_redirects=False, proxies=self.proxies, data=self.login_vals)
         # after a successful login we'll get redirected (302) to the dashboard
         if r.status_code == 302 and r.headers['Location'] == self.dashboard_url:
-            print(f"Login successful.")
+            print(f"Ruckus Login successful.")
         else:
             raise BaseException(f"Login to Ruckus server on {self.login_url} failed. http status: {r.status_code}. message: '{r.text}'")
 

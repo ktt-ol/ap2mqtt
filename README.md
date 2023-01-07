@@ -7,10 +7,15 @@ Reads various data from our access points via telnet and forward that using mqtt
 **venv**
 
 ```bash
-apt install python3-virtualenv
-virtualenv -p python3 venv
+virtualenv venv
 source venv/bin/activate
 pip install -r requirements.txt
+```
+
+**Debian**
+
+```bash
+apt-get install python3-sdnotify python3-dateutil python3-paho-mqtt 
 ```
 
 # Run

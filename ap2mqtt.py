@@ -2,9 +2,10 @@
 import configparser
 
 from lib.RuckusTelnet import RuckusTelnet
-from lib.ruckusWeb import RuckusWeb
+#from lib.ruckusWeb import RuckusWeb
+from lib.unifiWeb import UnifiWeb
 from lib.wlanmqtt import WLANMQTT
-from lib.oldCtrlTelnet import OldControllerTelnet
+#from lib.oldCtrlTelnet import OldControllerTelnet
 import time
 import sdnotify
 
@@ -12,12 +13,14 @@ config = configparser.ConfigParser()
 config.read("ap2mqtt.conf")
 
 cliauth = config["cliauth"]
-old_ctrl = OldControllerTelnet(cliauth["server"], cliauth["port"], cliauth["username"], cliauth["password"])
-ruckus_config = config["ruckus"]
-# ruckus = RuckusTelnet(ruckus_config["server"], ruckus_config["port"], ruckus_config["username"], ruckus_config["password"])
-ruckus = RuckusWeb(ruckus_config["server"], ruckus_config["username"], ruckus_config["password"])
+#old_ctrl = OldControllerTelnet(cliauth["server"], cliauth["port"], cliauth["username"], cliauth["password"])
+#ruckus_config = config["ruckus"]
+## ruckus = RuckusTelnet(ruckus_config["server"], ruckus_config["port"], ruckus_config["username"], ruckus_config["password"])
+#ruckus = RuckusWeb(ruckus_config["server"], ruckus_config["username"], ruckus_config["password"])
+unifi_config = config["unifi"]
+unifi = UnifiWeb(unifi_config["server"], unifi_config["username"], unifi_config["password"])
 
-mqtt = WLANMQTT(old_ctrl, ruckus, config["mqttauth"])
+mqtt = WLANMQTT(unifi, config["mqttauth"])
 while mqtt.connected is None:
     time.sleep(1)
 

@@ -4,20 +4,20 @@ import random
 import ssl
 import string
 from typing import List
+import sys
 
 import paho.mqtt.client as mqtt
 
 from lib import ClientInfo
 from lib.RuckusTelnet import RuckusTelnet
+from lib.unifiWeb import UnifiWeb
 
 # useful for testing, default should be True
-from lib.ruckusWeb import RuckusWeb
-
 RETAIN = True
 
 
 class WLANMQTT:
-    def __init__(self, old_ctrl, ruckus: RuckusWeb, mqttauth):
+    def __init__(self, unifi: UnifiWeb, mqttauth):
         self.basepath = mqttauth["basepath"]
         self.sessionpath = mqttauth["session-path"]
         client_id = "%s-%s" % (
@@ -37,12 +37,14 @@ class WLANMQTT:
         self.connected = None
 
         self.cached = {}
-        self.old_ctrl = old_ctrl
-        self.ruckus = ruckus
+        #self.old_ctrl = old_ctrl
+        #self.ruckus = ruckus
+        self.unifi = unifi
 
     def __exit__(self):
-        self.old_ctrl.exit()
-        self.ruckus.exit()
+        #self.old_ctrl.exit()
+        #self.ruckus.exit()
+        self.unifi.exit()
         self.client.loop_stop()
 
     def update(self):
@@ -61,8 +63,9 @@ class WLANMQTT:
     def __update_user_sessions(self):
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future_to_ci = [
-                executor.submit(self.old_ctrl.cmd_user_sessions),
-                executor.submit(self.ruckus.read_clients)
+                #executor.submit(self.old_ctrl.cmd_user_sessions),
+                #executor.submit(self.ruckus.read_clients),
+                executor.submit(self.unifi.read_clients)
             ]
 
             clients: List[ClientInfo] = []
@@ -168,7 +171,8 @@ class WLANMQTT:
     def on_disconnect(self, client, userdata, rc):
         self.connected = False
         print("MQTT disconnected with code " + str(rc))
-
+        # TODO: try to do a reconnect?
+        sys.exit(1)
 
 def byte2str(input):
     if type(input) is bytes:
